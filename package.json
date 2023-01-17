@@ -25,6 +25,7 @@
     "generate-api-key": "^1.0.2",
     "jet-logger": "^1.2.6",
     "mongoose": "^6.8.3",
+    "mongoose-schema-jsonschema": "^2.0.2",
     "morgan": "^1.10.0",
     "pg": "^8.8.0",
     "typeorm": "^0.3.11"
