@@ -5,11 +5,13 @@ import connection from "./database/db.connectios";
 import logger from 'jet-logger';
 import morgan from "morgan";
 import cors from "cors";
+import { AuthController } from "./controllers/auth.controller";
 config();
 
 class Server {
     private app: express.Application;
     private parameters: ApiKeyController;
+    private auth: AuthController;
 
     constructor(
 
@@ -18,6 +20,7 @@ class Server {
         connection();
         this.configuration();
         this.parameters = new ApiKeyController();
+        this.auth = new AuthController();
         this.routes();
     }
 
@@ -31,6 +34,7 @@ class Server {
 
     public routes() {
         this.app.use('/v1/api/parameters', this.parameters.router);
+        this.app.use('/v1/api/auth', this.auth.registerAdminUser);
     }
 
     public start() {

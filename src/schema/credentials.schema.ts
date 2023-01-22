@@ -6,6 +6,7 @@ export interface ICredentials {
     logLogin: ObjectId;
     rol: string;
     profileId: ObjectId;
+    firstLogin: boolean;
 }
 
 const credentialsSchema = new Schema<ICredentials>({
@@ -32,6 +33,10 @@ const credentialsSchema = new Schema<ICredentials>({
     profileId: {
         type: Types.ObjectId,
         ref: "Profile"
+    },
+    firstLogin: {
+        type: Boolean,
+        required: true
     }
 },
     {
