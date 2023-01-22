@@ -37,6 +37,10 @@ interface IFirstLogin {
     newPassword: string;
 }
 
+interface IForgotPassword {
+    user: string;
+}
+
 export class AuthController {
     public router: Router
 
@@ -251,7 +255,62 @@ export class AuthController {
             console.log(err);
             return res.status(500).json({
                 ok: false,
-                message: "Error al iniciar sesión, por favor contacte al administrador del sistema.",
+                message: "Error inesperado, por favor contacte al administrador del sistema.",
+                error: err
+            });
+        }
+    }
+
+    public forgotPasswordSend = async(req: Request, res: Response) => {
+        try {
+            const body:IForgotPassword = req.body;
+
+            const {
+                user
+            } = body;
+
+            Credentials.findOne({ user: user })
+            .then(async (data) => {
+                if(data == null) return res.status(404).json({
+                    ok: false,
+                    message: "El usuario suministrado no ha sido encontrado."
+                });
+                Profile.findById(data.profileId)
+                .then(async (profile) => {
+                    const ramdonPass = await generate({
+                        length: 4,
+                        numbers: true,
+                        uppercase: true,
+                        lowercase: true,
+                        symbols: true
+                    });
+                    const hassPass = await hashSync(ramdonPass, 10);
+    
+                    Credentials.findByIdAndUpdate(data._id, {
+                        password: hassPass
+                    })
+                    .then(() => {
+                        axios
+                        .post(SMS_URL, {
+                            "from": "SoftCar RD",
+                            "text": `Su contraseña temporal es: ${ramdonPass}`,
+                            "to": profile?.phone,
+                            "api_key": APIKEY_VONAGE,
+                            "api_secret": APISECRET_VONAGE
+                        })
+                        .then(() => console.log('sent'));
+                        return res.status(200).json({
+                            ok: true,
+                            message: "Hemos cambiado su contraseña y hemos enviado una temporal a su número telefonico"
+                        });
+                    })
+                })
+            })
+        } catch(err) {
+            console.log(err);
+            return res.status(500).json({
+                ok: false,
+                message: "Error inesperado, por favor contacte al administrador del sistema.",
                 error: err
             });
         }
@@ -261,5 +320,6 @@ export class AuthController {
         this.router.post('/admin/register', this.registerAdminUser);
         this.router.post('/admin/login', this.loginAdmin);
         this.router.put('/admin/change-password/init', this.changePasswordFirstLogin);
+        this.router.post('/admin/forgot-password', this.forgotPasswordSend);
     }
 }
