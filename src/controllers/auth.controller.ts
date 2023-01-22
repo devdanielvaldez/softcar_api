@@ -2,6 +2,12 @@ import { Router, Request, Response } from "express";
 import { Credentials } from "../schema/credentials.schema";
 import { Profile } from "../schema/profile.schema";
 import { generate } from 'generate-password';
+import { hashSync } from 'bcrypt';
+import axios from "axios";
+
+const SMS_URL: string = "https://rest.nexmo.com/sms/json";
+const APIKEY_VONAGE: string = "b371598a";
+const APISECRET_VONAGE: string = "67PNQcSaMccX3oOP";
 
 interface IRegisterAdmin {
     user: string;
@@ -49,6 +55,8 @@ export class AuthController {
                         lowercase: true,
                         symbols: true
                     });
+
+                    const hasPass = await hashSync(ramdonPass, 10);
         
                     const newProfile = new Profile({
                         name: name,
@@ -65,7 +73,7 @@ export class AuthController {
         
                         const newCredentials = new Credentials({
                             user: user,
-                            password: ramdonPass,
+                            password: hasPass,
                             rol: 'admin',
                             profileId: profile._id,
                             firstLogin: true
@@ -77,6 +85,16 @@ export class AuthController {
                                 message: "El usuario que desea registrar en estos momentos no se ha podido procesar, por favor intente mas tarde.",
                                 error: error
                             });
+
+                            axios
+                            .post(SMS_URL, {
+                                "from": "SoftCar RD",
+                                "text": `Su contraseña temporal es: ${ramdonPass}`,
+                                "to": phone,
+                                "api_key": APIKEY_VONAGE,
+                                "api_secret": APISECRET_VONAGE
+                            })
+                            .then(() => console.log('sent'));
         
                             return res.status(201).json({
                                 ok: true,
