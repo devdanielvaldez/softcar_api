@@ -31,6 +31,12 @@ interface ILogLogin {
     os: string;
 }
 
+interface IFirstLogin {
+    id: string;
+    oldPassword: string;
+    newPassword: string;
+}
+
 export class AuthController {
     public router: Router
 
@@ -205,8 +211,55 @@ export class AuthController {
         }
     }
 
+    public changePasswordFirstLogin = async(req: Request, res: Response) => {
+        try {
+            const body: IFirstLogin = req.body;
+            const {
+                id,
+                oldPassword,
+                newPassword
+            } = body;
+
+            Credentials.findById(id)
+            .then(async (data) => {
+                if(data == null) return res.status(404).json({
+                    ok: false,
+                    message: "Este usuario no existe en el sistema"
+                });
+
+                const comparePass = await compareSync(oldPassword, data.password);
+
+                if(!comparePass) return res.status(400).json({
+                    ok: false,
+                    message: "La contraseña introducida es incorrecta"
+                });
+
+                const hassPass = await hashSync(newPassword, 10);
+
+                Credentials.findByIdAndUpdate(id, {
+                    password: hassPass,
+                    firstLogin: false
+                })
+                .then((data) => {
+                    return res.status(200).json({
+                        ok: true,
+                        message: "Contraseña actualizada correctamente"
+                    });
+                })
+            })
+        } catch(err) {
+            console.log(err);
+            return res.status(500).json({
+                ok: false,
+                message: "Error al iniciar sesión, por favor contacte al administrador del sistema.",
+                error: err
+            });
+        }
+    }
+
     public routes() {
         this.router.post('/admin/register', this.registerAdminUser);
         this.router.post('/admin/login', this.loginAdmin);
+        this.router.put('/admin/change-password/init', this.changePasswordFirstLogin);
     }
 }
