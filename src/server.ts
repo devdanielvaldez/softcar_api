@@ -34,7 +34,7 @@ class Server {
 
     public routes() {
         this.app.use('/v1/api/parameters', this.parameters.router);
-        this.app.use('/v1/api/auth', this.auth.registerAdminUser);
+        this.app.use('/v1/api/auth', this.auth.router);
     }
 
     public start() {
