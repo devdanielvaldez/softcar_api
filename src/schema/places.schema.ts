@@ -26,4 +26,4 @@ const placesSchema = new Schema<IPlaces>({
     }
 );
 
-export const Taxes = model<IPlaces>('Places', placesSchema);
+export const Places = model<IPlaces>('Places', placesSchema);

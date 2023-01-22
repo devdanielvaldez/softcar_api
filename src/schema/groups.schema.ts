@@ -27,4 +27,4 @@ const groupsSchema = new Schema<IGroups>({
     }
 );
 
-export const Taxes = model<IGroups>('Groups', groupsSchema);
+export const Groups = model<IGroups>('Groups', groupsSchema);

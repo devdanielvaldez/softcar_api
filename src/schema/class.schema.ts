@@ -27,4 +27,4 @@ const classSchema = new Schema<IClass>({
     }
 );
 
-export const Taxes = model<IClass>('Class', classSchema);
+export const Class = model<IClass>('Class', classSchema);
