@@ -1,9 +1,11 @@
 import { Router, Request, Response } from "express";
 import { Credentials } from "../schema/credentials.schema";
 import { Profile } from "../schema/profile.schema";
+import { LogLogin } from "../schema/logLogin.schema";
 import { generate } from 'generate-password';
-import { hashSync } from 'bcrypt';
+import { compareSync, hashSync } from 'bcrypt';
 import axios from "axios";
+import jwt from 'jsonwebtoken';
 
 const SMS_URL: string = "https://rest.nexmo.com/sms/json";
 const APIKEY_VONAGE: string = "b371598a";
@@ -14,6 +16,19 @@ interface IRegisterAdmin {
     name: string;
     phone: string;
     email: string;
+}
+
+interface ILogin {
+    user: string;
+    password: string;
+    logLogin: ILogLogin;
+}
+
+interface ILogLogin {
+    date: string;
+    ip: string;
+    explorer: string;
+    os: string;
 }
 
 export class AuthController {
@@ -116,7 +131,82 @@ export class AuthController {
         }
     }
 
+    public loginAdmin = async(req: Request, res: Response) => {
+        try {
+            const body: ILogin = req.body;
+            const {
+                user,
+                password,
+                logLogin
+            } = body;
+
+            Credentials.findOne({ user: user })
+            .populate('profileId')
+            .populate('logLogin')
+            .then(async (data) => {
+                if(data == null) return res.status(401).json({
+                    ok: false,
+                    message: "Usuario o Contraseña invalidos."
+                });
+
+                const validatePassword = await compareSync(password, data.password);
+
+                if(!validatePassword) return res.status(401).json({
+                    ok: false,
+                    message: "Usuario o Contraseña invalidos."
+                });
+
+                const newLog = new LogLogin({
+                    date: logLogin.date,
+                    ip: logLogin.ip,
+                    explorer: logLogin.explorer,
+                    os: logLogin.os
+                });
+
+                newLog.save((err, log) => {
+                    Credentials.findByIdAndUpdate(data._id, {
+                        $push: {
+                            logLogin: log._id
+                        }
+                    }).exec();
+                });
+
+                const token = jwt.sign({
+                    data: {
+                        user: data.user,
+                        id: data._id,
+                        profileId: data.profileId
+                    }
+                }, 'secret', {
+                    expiresIn: '4h'
+                });
+
+                if(data.firstLogin) return res.status(200).json({
+                    ok: true,
+                    accessToken: token,
+                    firstLogin: true,
+                    data: data
+                });
+
+                return res.status(200).json({
+                    ok: true,
+                    accessToken: token,
+                    firstLogin: true,
+                    user: data
+                })
+            })
+        } catch(err) {
+            console.log(err);
+            return res.status(500).json({
+                ok: false,
+                message: "Error al iniciar sesión, por favor contacte al administrador del sistema.",
+                error: err
+            });
+        }
+    }
+
     public routes() {
         this.router.post('/admin/register', this.registerAdminUser);
+        this.router.post('/admin/login', this.loginAdmin);
     }
 }
