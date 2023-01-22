@@ -28,58 +28,63 @@ export class AuthController {
                 email
             } = body;
 
-            const existUser: any = Credentials.findOne({ user: user.toLowerCase() }).exec();
-
-            if(existUser !== null || existUser.length !== 0) return res.status(400).json({
-                ok: false,
-                message: "El usuario que desea registrar ya se encuentra en uso dentro del sistema."
-            });
-
-            const existEmail: any = Profile.findOne({ email: email.toLowerCase() }).exec();
-
-            if(existEmail !== null || existEmail.length !== 0) return res.status(400).json({
-                ok: false,
-                message: "El email que desea registrar ya se encuentra en uso dentro del sistema."
-            });
-
-            const ramdonPass = await generate({
-                length: 4,
-                numbers: true,
-                uppercase: true,
-                lowercase: true,
-                symbols: true
-            });
-
-            const newProfile = new Profile({
-                name: name,
-                email: email.toLowerCase(),
-                phone: phone
-            });
-
-            newProfile.save((err, profile) => {
-                if(err) return res.status(400).json({
+            Credentials.findOne({ user: user.toLowerCase() })
+            .then((data) => {
+                if(data !== null) return res.status(400).json({
                     ok: false,
-                    message: "El usuario que desea registrar en estos momentos no se ha podido procesar, por favor intente mas tarde."
+                    message: "El usuario que desea registrar ya se encuentra en uso dentro del sistema."
                 });
 
-                const newCredentials = new Credentials({
-                    user: user,
-                    password: ramdonPass,
-                    rol: 'admin',
-                    profileId: profile._id
-                });
-
-                newCredentials.save((error, credentials) => {
-                    if(error) return res.status(400).json({
+                Profile.findOne({ email: email.toLowerCase() })
+                .then(async (data) => {
+                    if(data !== null) return res.status(400).json({
                         ok: false,
-                        message: "El usuario que desea registrar en estos momentos no se ha podido procesar, por favor intente mas tarde."
+                        message: "El email que desea registrar ya se encuentra en uso dentro del sistema."
                     });
 
-                    return res.status(201).json({
-                        ok: true,
-                        message: "Usuario administrador creado correctamente",
-                        data: credentials,
-                        pass: ramdonPass
+                    const ramdonPass = await generate({
+                        length: 4,
+                        numbers: true,
+                        uppercase: true,
+                        lowercase: true,
+                        symbols: true
+                    });
+        
+                    const newProfile = new Profile({
+                        name: name,
+                        email: email.toLowerCase(),
+                        phone: phone
+                    });
+        
+                    newProfile.save((err, profile) => {
+                        if(err !== null) return res.status(400).json({
+                            ok: false,
+                            message: "El usuario que desea registrar en estos momentos no se ha podido procesar, por favor intente mas tarde.",
+                            error: err
+                        });
+        
+                        const newCredentials = new Credentials({
+                            user: user,
+                            password: ramdonPass,
+                            rol: 'admin',
+                            profileId: profile._id,
+                            firstLogin: true
+                        });
+        
+                        newCredentials.save((error, credentials) => {
+                            if(error !== null) return res.status(400).json({
+                                ok: false,
+                                message: "El usuario que desea registrar en estos momentos no se ha podido procesar, por favor intente mas tarde.",
+                                error: error
+                            });
+        
+                            return res.status(201).json({
+                                ok: true,
+                                message: "Usuario administrador creado correctamente",
+                                data: credentials,
+                                pass: ramdonPass
+                            });
+                        })
                     });
                 })
             });
