@@ -1,8 +1,9 @@
-import { Schema, model } from 'mongoose';
+import { Schema, model, Types, ObjectId } from 'mongoose';
 
 export interface IWareHouses {
     name: string;
     state: boolean;
+    placesId: ObjectId;
 }
 
 const warehousesSchema = new Schema<IWareHouses>({
@@ -13,7 +14,11 @@ const warehousesSchema = new Schema<IWareHouses>({
     state: {
         type: Boolean,
         required: true
-    }
+    },
+    placesId: [{
+        type: Types.ObjectId,
+        ref: "Places"
+    }]
 },
     {
         timestamps: true,
