@@ -6,12 +6,16 @@ import logger from 'jet-logger';
 import morgan from "morgan";
 import cors from "cors";
 import { AuthController } from "./controllers/auth.controller";
+import { WareHousesController } from "./controllers/warehouses.controller";
+import { PlacesController } from "./controllers/places.controller";
 config();
 
 class Server {
     private app: express.Application;
     private parameters: ApiKeyController;
     private auth: AuthController;
+    private warehouse: WareHousesController;
+    private places: PlacesController;
 
     constructor(
 
@@ -21,6 +25,8 @@ class Server {
         this.configuration();
         this.parameters = new ApiKeyController();
         this.auth = new AuthController();
+        this.warehouse = new WareHousesController();
+        this.places = new PlacesController();
         this.routes();
     }
 
@@ -35,6 +41,8 @@ class Server {
     public routes() {
         this.app.use('/v1/api/parameters', this.parameters.router);
         this.app.use('/v1/api/auth', this.auth.router);
+        this.app.use('/v1/api/warehouse', this.warehouse.router);
+        this.app.use('/v1/api/places', this.places.router);
     }
 
     public start() {
