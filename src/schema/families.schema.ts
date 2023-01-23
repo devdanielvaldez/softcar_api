@@ -1,8 +1,9 @@
-import { Schema, model } from 'mongoose';
+import { Schema, model, ObjectId, Types } from 'mongoose';
 
 export interface IFamilies {
     name: string;
     state: boolean;
+    classId:ObjectId
 }
 
 const familiesSchema = new Schema<IFamilies>({
@@ -13,6 +14,10 @@ const familiesSchema = new Schema<IFamilies>({
     state: {
         type: Boolean,
         required: true
+    },
+    classId: {
+        type: Types.ObjectId,
+        ref: "Class"
     }
 },
     {

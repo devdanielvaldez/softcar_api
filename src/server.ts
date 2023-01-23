@@ -8,6 +8,9 @@ import cors from "cors";
 import { AuthController } from "./controllers/auth.controller";
 import { WareHousesController } from "./controllers/warehouses.controller";
 import { PlacesController } from "./controllers/places.controller";
+import { FamiliesController } from "./controllers/families.controller";
+import { ClassController } from "./controllers/class.controller";
+import { GroupsController } from "./controllers/groups.controller";
 config();
 
 class Server {
@@ -16,6 +19,9 @@ class Server {
     private auth: AuthController;
     private warehouse: WareHousesController;
     private places: PlacesController;
+    private families: FamiliesController;
+    private class: ClassController;
+    private groups: GroupsController;
 
     constructor(
 
@@ -27,6 +33,9 @@ class Server {
         this.auth = new AuthController();
         this.warehouse = new WareHousesController();
         this.places = new PlacesController();
+        this.families = new FamiliesController();
+        this.class = new ClassController();
+        this.groups = new GroupsController();
         this.routes();
     }
 
@@ -43,6 +52,9 @@ class Server {
         this.app.use('/v1/api/auth', this.auth.router);
         this.app.use('/v1/api/warehouse', this.warehouse.router);
         this.app.use('/v1/api/places', this.places.router);
+        this.app.use('/v1/api/families', this.families.router);
+        this.app.use('/v1/api/class', this.class.router);
+        this.app.use('/v1/api/groups', this.groups.router);
     }
 
     public start() {

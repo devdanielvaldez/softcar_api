@@ -3,7 +3,6 @@ import { Schema, model, ObjectId, Types } from 'mongoose';
 export interface IClass {
     name: string;
     state: boolean;
-    familiesId: ObjectId
 }
 
 const classSchema = new Schema<IClass>({
@@ -14,10 +13,6 @@ const classSchema = new Schema<IClass>({
     state: {
         type: Boolean,
         required: true
-    },
-    familiesId: {
-        type: Types.ObjectId,
-        ref: "Families"
     }
 },
     {
